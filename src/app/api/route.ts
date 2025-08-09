@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from 'axios'
 
+export const runtime = 'nodejs'
+export const maxDuration = 300
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: {
+        sizeLimit: '5gb'
+    },
+    responseLimit: false,
   },
 };
 
