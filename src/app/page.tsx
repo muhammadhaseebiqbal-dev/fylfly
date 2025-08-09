@@ -23,6 +23,7 @@ export default function Home() {
   // Backend interactions
   const propagateFileToBackend = async (file: File) => {
     const payload = new FormData()
+    const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024
     payload.append('file', file)
 
     try {
@@ -31,6 +32,10 @@ export default function Home() {
           headers: {
             'Content-Type': 'multipart/form-data'
           },
+          timeout: 300000, // 5 minutes timeout
+          maxContentLength: MAX_FILE_SIZE,
+          maxBodyLength: MAX_FILE_SIZE,
+
           onUploadProgress: (ProgressEvent: AxiosProgressEvent) => {
             if (ProgressEvent.total) {
               const percent = Math.round((ProgressEvent.loaded * 100) / ProgressEvent.total)
