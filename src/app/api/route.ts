@@ -1,43 +1,47 @@
-import { NextRequest, NextResponse } from "next/server";
-import axios from 'axios'
 
-export const runtime = 'nodejs'
-export const maxDuration = 300
-export const config = {
-  api: {
-    bodyParser: {
-        sizeLimit: '5gb'
-    },
-    responseLimit: false,
-  },
-};
+// Enable this if you have enough money and afford custom server. Otherwise Don't touch it for vercel compatibility
 
 
-export async function POST(req: NextRequest) {
+// import { NextRequest, NextResponse } from "next/server";
+// import axios from 'axios'
 
-    const data = await req.formData()
-    const file = data.get('file') as File
+// export const runtime = 'nodejs'
+// export const maxDuration = 300
+// export const config = {
+//   api: {
+//     bodyParser: {
+//         sizeLimit: '5gb'
+//     },
+//     responseLimit: false,
+//   },
+// };
 
-    const payload = new FormData()
-    payload.append('file', file)
 
-    const response = await axios.post('https://upload.gofile.io/uploadfile', payload, {
-        headers: {
-            'Authorization': `Bearer ${process.env.GOFILE_API_TOKEN}`,
-            'Content-Type': 'multipart/form-data'
-        }
-    })
+// export async function POST(req: NextRequest) {
 
-    const parsedResponse = response.data.data
-    const server = parsedResponse.servers[0]
-    const fileId = parsedResponse.id
-    const filename = encodeURIComponent(parsedResponse.name)
+//     const data = await req.formData()
+//     const file = data.get('file') as File
 
-    const directLink = `https://${server}.gofile.io/download/${fileId}/${filename}`
+//     const payload = new FormData()
+//     payload.append('file', file)
 
-    return NextResponse.json({
-        success: true,
-        directLink: directLink,
-        message: "File Uploaded Successfully!"
-    }, { status: 200 })
-}
+//     const response = await axios.post('https://upload.gofile.io/uploadfile', payload, {
+//         headers: {
+//             'Authorization': `Bearer ${process.env.GOFILE_API_TOKEN}`,
+//             'Content-Type': 'multipart/form-data'
+//         }
+//     })
+
+//     const parsedResponse = response.data.data
+//     const server = parsedResponse.servers[0]
+//     const fileId = parsedResponse.id
+//     const filename = encodeURIComponent(parsedResponse.name)
+
+//     const directLink = `https://${server}.gofile.io/download/${fileId}/${filename}`
+
+//     return NextResponse.json({
+//         success: true,
+//         directLink: directLink,
+//         message: "File Uploaded Successfully!"
+//     }, { status: 200 })
+// }

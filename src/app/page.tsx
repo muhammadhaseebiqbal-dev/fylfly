@@ -28,7 +28,7 @@ export default function Home() {
 
     try {
       if (file) {
-        await axios.post('/api', payload, {
+        await axios.post('https://upload.gofile.io/uploadfile', payload, {
           headers: {
             'Content-Type': 'multipart/form-data'
           },
@@ -42,7 +42,7 @@ export default function Home() {
               setProgress(percent)
               if (percent >= 100) {
                 setEngagementTitle("Finishing up the process")
-              } else{
+              } else {
                 setEngagementTitle("validating file for added security layer")
               }
             }
@@ -50,12 +50,17 @@ export default function Home() {
         }
         )
           .then(response => {
+            const parsedResponse = response.data.data
+            const server = parsedResponse.servers[0]
+            const fileId = parsedResponse.id
+            const filename = encodeURIComponent(parsedResponse.name)
+
             setEngagementTitle("")
             setProgress(0)
             isUploading(false)
             console.log(response.data.directLink);
-            
-            setDirectlink(response.data?.directLink)
+
+            setDirectlink(`https://${server}.gofile.io/download/${fileId}/${filename}`)
             isPopup(true)
             console.log(response.data)
           })
@@ -152,19 +157,19 @@ export default function Home() {
   const handlePopupX = () => {
     isPopup(false)
   }
-  const handleWhatsappDeeplink = ()=>{
+  const handleWhatsappDeeplink = () => {
     const encodedDirectLink = encodeURIComponent(directLink)
     window.open(`https://wa.me/?text=${encodedDirectLink}`, "_blank")
   }
-  const handleTelegramDeeplink = ()=>{
+  const handleTelegramDeeplink = () => {
     const encodedDirectLink = encodeURIComponent(directLink)
     window.open(`https://t.me/share/url?url=${encodedDirectLink}&text=${encodeURIComponent("Check this out!")}`, "_blank")
   }
-  const handleSignalDeeplink = ()=>{
+  const handleSignalDeeplink = () => {
     const encodedDirectLink = encodeURIComponent(directLink)
     window.location.href = `sgnl://send?text=${encodeURIComponent(directLink)}`
   }
-  const handleSlackDeeplink = ()=>{
+  const handleSlackDeeplink = () => {
     const encodedDirectLink = encodeURIComponent(directLink)
     window.open(`https://slack.com/app_redirect`, "_blank")
   }
