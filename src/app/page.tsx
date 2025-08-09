@@ -7,6 +7,7 @@ import '@/app/globals.css'
 import axios, { AxiosProgressEvent } from "axios";
 import { motion, AnimatePresence } from "motion/react";
 import { SiSignal } from "react-icons/si";
+import { BiError } from "react-icons/bi";
 
 
 export default function Home() {
@@ -18,6 +19,8 @@ export default function Home() {
   const [directLink, setDirectlink] = useState<string>("https://${server}.gofile.io/download/${fileId}/${filename}")
   const [copied, iscopied] = useState<boolean>(false)
   const [popup, isPopup] = useState<boolean>(false)
+  const [toast, isToast] = useState<boolean>(false)
+  const [errorMessage, setErrorMessage] = useState<string>("")
 
 
   // Backend interactions
@@ -32,7 +35,7 @@ export default function Home() {
           headers: {
             'Content-Type': 'multipart/form-data'
           },
-          timeout: 300000, // 5 minutes timeout
+          timeout: 30 * 60 * 1000, // Timout 30 minutes
           maxContentLength: MAX_FILE_SIZE,
           maxBodyLength: MAX_FILE_SIZE,
 
@@ -40,16 +43,19 @@ export default function Home() {
             if (ProgressEvent.total) {
               const percent = Math.round((ProgressEvent.loaded * 100) / ProgressEvent.total)
               setProgress(percent)
-              if (percent >= 100) {
-                setEngagementTitle("Finishing up the process")
-              } else {
-                setEngagementTitle("validating file for added security layer")
+              if (percent <= 20) {
+                setEngagementTitle("Validating files for added security layer")
+              } else if (percent <= 85) {
+                setEngagementTitle("Uploading files to server")
+              }
+              else {
+                setEngagementTitle("Finishing process! Take a sigh")
               }
             }
           }
         }
         )
-          .then(response => {
+          .then(async (response) => {
             const parsedResponse = response.data.data
             const server = parsedResponse.servers[0]
             const fileId = parsedResponse.id
@@ -58,15 +64,20 @@ export default function Home() {
             setEngagementTitle("")
             setProgress(0)
             isUploading(false)
-            console.log(response.data.directLink);
 
             setDirectlink(`https://${server}.gofile.io/download/${fileId}/${filename}`)
             isPopup(true)
-            console.log(response.data)
           })
       }
     } catch (error) {
-      console.log("Error encountered:", error);
+      setErrorMessage("Something went wrong!")
+      isToast(true)
+
+      setTimeout(() => {
+        setErrorMessage("")
+        isToast(false)
+      }, 2000)
+
       setEngagementTitle("")
       setProgress(0)
       isUploading(false)
@@ -78,12 +89,21 @@ export default function Home() {
     fileInput.current?.click()
   }
   const onNormalUpload = () => {
-    isDragOver(false)
-    isUploading(true)
 
     const file = fileInput.current?.files?.[0]
     if (file) {
+      isDragOver(false)
+      isUploading(true)
       propagateFileToBackend(file)
+
+    } else {
+      setErrorMessage("Error occurred while accessing file!")
+      isToast(true)
+
+      setTimeout(() => {
+        setErrorMessage("")
+        isToast(false)
+      }, 2000)
     }
   }
   const handleDragOver = (e: React.DragEvent) => {
@@ -103,12 +123,22 @@ export default function Home() {
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    isDragOver(false)
-    isUploading(true)
 
     const file = e.dataTransfer.files[0]
+
     if (file) {
+      isDragOver(false)
+      isUploading(true)
       await propagateFileToBackend(file)
+
+    } else {
+      setErrorMessage("Error occurred while accessing file!")
+      isToast(true)
+
+      setTimeout(() => {
+        setErrorMessage("")
+        isToast(false)
+      }, 2000)
     }
   }
   const copyLinktoClipboard = () => {
@@ -123,10 +153,15 @@ export default function Home() {
             }, 2000)
 
             navigator.vibrate?.(300)
-            console.log("Copied to the clipboard!")
           })
           .catch((err) => {
-            console.log("Something went wrong!")
+            setErrorMessage("Error occurred while copying link!")
+            isToast(true)
+
+            setTimeout(() => {
+              setErrorMessage("")
+              isToast(false)
+            }, 2000)
           })
       } else {
         const tempTextArea = document.createElement('textarea')
@@ -139,20 +174,23 @@ export default function Home() {
         try {
           document.execCommand('copy')
           iscopied(true)
+
           setTimeout(() => {
             iscopied(false)
           }, 2000)
 
           navigator.vibrate?.(300)
-          console.log("Copied to the clipboard!")
         } catch (error) {
-          console.log("Something went wrong!")
+          setErrorMessage("Error occurred while copying link!")
+          isToast(true)
+
+          setTimeout(() => {
+            setErrorMessage("")
+            isToast(false)
+          }, 2000)
         }
       }
-    } else {
-      console.log("Cool down period 2s")
     }
-
   }
   const handlePopupX = () => {
     isPopup(false)
@@ -242,7 +280,7 @@ export default function Home() {
           </motion.div>}
       </AnimatePresence>
       <div
-        className={`fileUpload relative flex justify-center items-center w-[90%] lg:w-[45%] h-[50%] m-auto mt-32 border-3 border-dashed ${dragOver ? 'border-purple-500' : 'border-gray-700/30'}  rounded-xl`}
+        className={`fileUpload relative flex justify-center items-center w-[90%] lg:w-[45%] h-[50%] m-auto mt-32 border-3 border-dashed cursor-pointer  ${dragOver || uploading ? 'border-purple-500 inset-shadow-[0_0_50px_10px_#8B5CF633]' : 'border-gray-700/30'}  rounded-xl`}
         onClick={OpenSelector}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
@@ -268,6 +306,29 @@ export default function Home() {
           }
         </div>
       </div>
+
+      <AnimatePresence>
+        {toast &&
+          <motion.div
+            initial={{ y: 10, opacity: 0, scale: 0.8 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 10, opacity: 0, scale: 0.8 }}
+
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 30,
+              duration: 0.3
+            }}
+            className="absolute z-3 bottom-20 left-1/2 transform -translate-1/2 rounded-xl bg-red-700 flex flex-row items-center p-4 gap-2"
+          >
+            <BiError size={23} />
+            <span className="text-nowrap">
+              {errorMessage}
+            </span>
+          </motion.div>
+        }
+      </AnimatePresence>
     </>
   );
 }
