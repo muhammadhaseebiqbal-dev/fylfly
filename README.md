@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FylFly
+
+FylFly is a lightweight file-sharing web app built with Next.js.  
+Users can drag and drop a file, upload it to GoFile, and instantly get a direct download link they can copy or share on messaging platforms.
+
+## Features
+
+- Drag-and-drop and click-to-select file upload
+- Real-time upload progress with status messages
+- Direct download link generation after successful upload
+- One-click copy to clipboard with fallback behavior
+- Quick sharing actions for WhatsApp, Telegram, Signal, and Slack
+- Animated success popup and error toast feedback
+- Responsive dark-themed UI
+
+## Tech Stack
+
+- **Framework:** Next.js 15 (App Router)
+- **Language:** TypeScript + React 19
+- **Styling:** Tailwind CSS 4 + custom global styles
+- **HTTP client:** Axios
+- **Icons:** lucide-react + react-icons
+- **Animations:** motion
+
+## How It Works
+
+1. User selects or drops a file in the upload area.
+2. The app sends the file to `https://upload.gofile.io/uploadfile` using `multipart/form-data`.
+3. Upload progress is tracked through Axios progress events.
+4. On success, response metadata is used to build a direct download URL:
+   - `https://{server}.gofile.io/download/{fileId}/{filename}`
+5. The app shows a popup with:
+   - Generated direct link
+   - Copy button
+   - Social-sharing shortcuts
+
+## Project Structure
+
+```text
+src/
+  app/
+    globals.css      # Global styles and theme variables
+    layout.tsx       # Root layout, metadata, top nav/logo
+    page.tsx         # Main upload UI and client-side logic
+```
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ (recommended LTS)
+- npm
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` – Start development server
+- `npm run build` – Build the production app
+- `npm run start` – Run the production server
+- `npm run lint` – Run ESLint checks
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
+This project is ready for Vercel deployment.  
+`vercel.json` pins deployment region to `iad1`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notes and Limitations
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Uploads are handled by GoFile; this app does not run its own storage backend.
+- Maximum upload body/content length in client config is set to **5 GB**.
+- Slack shortcut opens Slack but does not prefill a message URL like the other share options.
 
-## Deploy on Vercel
+## Contributing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Run `npm run lint`
+5. Open a pull request
